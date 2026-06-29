@@ -31,7 +31,7 @@ enum BackendClientError: LocalizedError {
 final class BackendClient {
     // baseURL 是 Python 后端地址。
     // 真机测试时请把 127.0.0.1 改成 Mac 的局域网 IP，例如 http://192.168.1.20:8000。
-    private let baseURL = URL(string: "http://192.168.0.40:8000")!
+    private let baseURL = URL(string: "http://192.168.1.31:8000")!
 
     // session 是系统网络会话；这里用 shared 就足够做最小 demo。
     private let session: URLSession

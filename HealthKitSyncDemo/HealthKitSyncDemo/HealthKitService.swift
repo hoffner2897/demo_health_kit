@@ -132,8 +132,13 @@ final class HealthKitService {
                 quantitySamplePredicate: predicate,
                 options: .cumulativeSum
             ) { _, statistics, error in
-                // 如果 HealthKit 查询失败，直接返回错误。
+                // 没有健康数据时继续同步，让后端联通测试可以先跑通。
                 if let error {
+                    if self.isNoDataError(error) {
+                        continuation.resume(returning: nil)
+                        return
+                    }
+
                     continuation.resume(throwing: error)
                     return
                 }
@@ -172,8 +177,13 @@ final class HealthKitService {
                 limit: 1,
                 sortDescriptors: [sortDescriptor]
             ) { _, samples, error in
-                // 如果 HealthKit 查询失败，直接返回错误。
+                // 没有心率样本时继续同步，让 payload 中 latestHeartRate 保持为空。
                 if let error {
+                    if self.isNoDataError(error) {
+                        continuation.resume(returning: nil)
+                        return
+                    }
+
                     continuation.resume(throwing: error)
                     return
                 }
@@ -217,5 +227,14 @@ final class HealthKitService {
 
         // 返回可以用于查询或授权的数据类型。
         return type
+    }
+
+    // isNoDataError 判断 HealthKit 是否只是没有符合条件的数据。
+    private func isNoDataError(_ error: Error) -> Bool {
+        guard let healthKitError = error as? HKError else {
+            return false
+        }
+
+        return healthKitError.code == .errorNoData
     }
 }
